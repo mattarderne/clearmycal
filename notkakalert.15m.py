@@ -12,12 +12,10 @@
 
 import requests
 import json
-import textwrap
 from random import randint
 import datetime
-import sqlite3
 from datetime import datetime
-from tabulate import tabulate	
+import sqlite3
 import os
 
 
