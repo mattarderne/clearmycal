@@ -18,6 +18,9 @@ import datetime
 import sqlite3
 from datetime import datetime
 from tabulate import tabulate	
+import os
+
+
 
 conn = sqlite3.connect('/Users/mattarderne/Documents/notkak.db')
 cur = conn.cursor()
@@ -119,7 +122,7 @@ class Utils:
 class Forecast:
 	def __init__(self):
 		# get yours at https://darksky.net/dev
-		self.api_key = 'ad4185e99528a4f11c391a9977ff3b38'
+		self.api_key = os.environ['darksky']
 		self.geo_api_key = ''
 		# get yours API key for encode location at https://opencagedata.com
 		self.manual_city = 'Eynsham'
@@ -229,7 +232,6 @@ def main():
 	forecast = Forecast()
 	wx = Forecast.get_wx(forecast)
 	Forecast.render_wx(forecast, wx)
-
 
 	Utils.create_db(conn)
 	Utils.load_db(wx, cur)
