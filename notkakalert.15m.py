@@ -21,10 +21,26 @@ import os
 
 
 conn = sqlite3.connect('/Users/mattarderne/Documents/notkak.db')
-cur = conn.cursor()
+curr = conn.cursor()
 
 
 class Utils:
+
+	@classmethod
+	def weather_scale(self): 
+		"""relative scale of the various weather descriptions"""
+		return {
+			    '1': 'clear-day',
+			    '1': 'clear-night',
+			    '2': 'partly-cloudy-day',
+			    '2': 'partly-cloudy-night',
+			    '3': 'wind',
+			    '4': 'cloudy',
+			    '5': 'fog',
+			    '6': 'rain',
+			    '7': 'sleet',
+			    '8': 'snow'
+						}
 
 	@classmethod
 	def calculate_bearing(self, bearing, compass_rose, additional=False):
@@ -53,7 +69,8 @@ class Utils:
 			return now
 
 	@classmethod
-	def create_db(self, conn):
+	def create_db(self):
+		"""creates the db table, only necessary once"""
 
 		sql = 	'''CREATE TABLE IF NOT EXISTS wx_history
 			(   id CHAR(255) PRIMARY KEY NOT NULL, 
@@ -70,31 +87,15 @@ class Utils:
 		# conn.execute('''ALTER TABLE wx_history ADD COLUMN date CHAR(255)''')
 		conn.execute(sql)
 
-	@classmethod	
-	def get_history(self, cur, limit=False):
-		if dbhistory:
-			sql = """SELECT
-						*
-					FROM
-						wx_history
-					GROUP BY
-						date
-					ORDER BY
-						date DESC
-					LIMIT 5"""
-			# sqlFile = sql.read()
-			# sqlFile = sqlFile.replace('FILTER_THIS',futname)
-			rows = cur.execute(sql).fetchmany(int(8))
-			return rows
-		else:
-			return False
-	
 	@classmethod				
-	def load_db(self, entries, client):
-		curr = conn.cursor()
-		# print(tabulate(entries))
+	def load_db(self, entries):
+		"""loads data into the database, line by line
+			uses the hybrid primary key id
+			which ensures that only one forecast record per future date gets added per day
+			this is because forecasts change and so 
+			there isn't much value in getting a new forecast with more frequency than daily
+			"""
 
-		# print(entries)
 		for key in entries.items():
 
 			meta_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -116,6 +117,41 @@ class Utils:
 			except:
 				pass
 		conn.commit()
+
+	@classmethod	
+	def get_forecasts(self, limit=8):
+		"""queries the database, to get the latest versions of the future forecasts"""
+		
+		sql = """WITH latest_forecasts AS (
+					SELECT
+						DATE(timestamp, 'unixepoch', 'localtime') forecast_date,
+						icon,
+						temperatureMax,
+						MAX(dbtimestamp)
+					FROM
+						wx_history
+						GROUP BY 1
+						
+				)
+				SELECT 
+					"forecast_date",
+					icon,
+					temperatureMax
+				FROM
+					latest_forecasts
+					WHERE "timestamp" > date('now')		
+				"""
+		rows = curr.execute(sql).fetchmany(int(limit))
+		return rows
+
+	@classmethod	
+	def get_history(self, limit=14):
+		"""queries the database, to history of the most likely actual weather for the past 2 weeks"""
+		
+		sql = """select 1	
+				"""
+		rows = curr.execute(sql).fetchmany(int(limit))
+		return rows
 
 class Forecast:
 	def __init__(self):
@@ -183,14 +219,6 @@ class Forecast:
 
 				counter += 1
 
-			# print(daily_data)
-			# for item in wx['daily']:
-			# 	if item == 'summary':
-			# 		daily_data['week'] = str((wx['daily']['summary'].encode('utf-8', 'ignore')))
-
-		# except KeyError:
-		# 	return False
-
 		return daily_data
 
 	def render_wx(self, wx):
@@ -222,17 +250,40 @@ class Forecast:
 		else:
 			print('N/A')
 
+class Compare():
+	def __init__(self):
+		self.something = 'foo'
 
+	def compare(self,wx, past_week):
+		if max(wx) > max(past_week):
+			return True;
+		else:
+			return False
 
+	def warn():
+		if compare:
+			print('Alert')
+		else:
+			return False
 		
 def main():
 	
+	### Get the latest forecast and load to db
 	forecast = Forecast()
 	wx = Forecast.get_wx(forecast)
 	Forecast.render_wx(forecast, wx)
+	Utils.create_db()
+	Utils.load_db(wx)
 
-	Utils.create_db(conn)
-	Utils.load_db(wx, cur)
+	### compare the latest forecast to the recent week
+
+	# pulls the "actual" data from the past n weeks
+	past_week = Utils.get_history()
+
+	# pulls the forecast for the next week
+	print(past_week)
+
+	conn.close()
 	
 
 main()
