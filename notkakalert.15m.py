@@ -24,7 +24,7 @@ conn = sqlite3.connect('/Users/mattarderne/Documents/notkak.db')
 curr = conn.cursor()
 
 
-def weather_scale(self): 
+def weather_scale(): 
 		"""relative scale of the various weather descriptions"""
 		return {
 			    '1': 'clear-day',
@@ -39,7 +39,7 @@ def weather_scale(self):
 			    '8': 'snow'
 						}
 
-def create_db(self):
+def create_db():
 		"""creates the db table, only necessary once"""
 
 		sql = 	'''CREATE TABLE IF NOT EXISTS wx_history
@@ -57,7 +57,7 @@ def create_db(self):
 		# conn.execute('''ALTER TABLE wx_history ADD COLUMN date CHAR(255)''')
 		conn.execute(sql)
 			
-def load_db(self, entries):
+def load_db(entries):
 		"""loads data into the database, line by line
 			uses the hybrid primary key id
 			which ensures that only one forecast record per future date gets added per day
@@ -87,7 +87,7 @@ def load_db(self, entries):
 				pass
 		conn.commit()
 	
-def get_forecasts(self, limit=8):
+def get_forecasts(limit=8):
 		"""queries the database, to get the latest versions of the future forecasts"""
 		
 		sql = """WITH latest_forecasts AS (
@@ -115,7 +115,7 @@ def get_forecasts(self, limit=8):
 		rows = curr.execute(sql).fetchmany(int(limit))
 		return rows
 
-def get_history(self, limit=14):
+def get_history(limit=14):
 		"""queries the database, 
 		gets history of the most likely actual weather for the past 2 weeks
 		Does this by taking the forecast from the day closest to the time the data was loaded
@@ -279,12 +279,11 @@ def main():
 	past_week = get_history()
 
 	# pulls the forecast for the next week
-	coming_week = get_forecasts()
-	print(type(coming_week[0])) 
+	coming_week = get_forecasts() 
 
 	compare = Compare()
 	if compare.past_compare_previous(past_week, coming_week):
-		compare.warn()
+		compare.warn(day)
 
 	conn.close()
 	
