@@ -1,12 +1,12 @@
 #!/usr/bin/env PYTHONIOENCODING=UTF-8 /usr/local/bin/python
 # -*- coding: utf-8 -*-
 
-# <bitbar.title>Weather</bitbar.title>
-# <bitbar.version>v3.5.0</bitbar.version>
+# <bitbar.title>ClearMyCal</bitbar.title>
+# <bitbar.version>v0.0.1</bitbar.version>
 # <bitbar.author>Matt Arderne</bitbar.author>
 # <bitbar.author.github>seripap</bitbar.author.github>
-# <bitbar.desc>Oxford Sailing Club xbar plugin.</bitbar.desc>
-# <bitbar.image>https://cloud.githubusercontent.com/assets/683200/16276583/ff267f36-387c-11e6-9fd0-fc57b459e967.png</bitbar.image>
+# <bitbar.desc>ClearMyCal xbar plugin.</bitbar.desc>
+# <bitbar.image></bitbar.image>
 # <bitbar.dependencies>python</bitbar.dependencies>
 
 
@@ -124,22 +124,25 @@ class Utils:
 		
 		sql = """WITH latest_forecasts AS (
 					SELECT
-						DATE(timestamp, 'unixepoch', 'localtime') forecast_date,
+						DATE(timestamp,
+							'unixepoch',
+							'localtime') forecast_date,
 						icon,
 						temperatureMax,
 						MAX(dbtimestamp)
 					FROM
 						wx_history
-						GROUP BY 1
-						
+					GROUP BY
+						1
 				)
-				SELECT 
-					"forecast_date",
+				SELECT
+					forecast_date,
 					icon,
 					temperatureMax
 				FROM
 					latest_forecasts
-					WHERE "timestamp" > date('now')		
+				WHERE
+					forecast_date > date('now')	
 				"""
 		rows = curr.execute(sql).fetchmany(int(limit))
 		return rows
@@ -237,8 +240,6 @@ class Forecast:
 			print('Could not get weather data at this time')
 			return False
 
-	###TOP BAR
-
 		print('---')
 		if daily_data[0]:
 			for i in range(4):
@@ -271,7 +272,7 @@ def main():
 	### Get the latest forecast and load to db
 	forecast = Forecast()
 	wx = Forecast.get_wx(forecast)
-	Forecast.render_wx(forecast, wx)
+	# Forecast.render_wx(forecast, wx)
 	Utils.create_db()
 	Utils.load_db(wx)
 
@@ -281,7 +282,8 @@ def main():
 	past_week = Utils.get_history()
 
 	# pulls the forecast for the next week
-	print(past_week)
+	coming_week = Utils.get_forecasts()
+	print(coming_week[0][2])
 
 	conn.close()
 	
