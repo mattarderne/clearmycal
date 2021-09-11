@@ -1,24 +1,18 @@
 # clearmycal
-An alerting system to let you know if the weather is going to be "relatively great" in the next 7 days. This inspired by someone who once said that if there is a great day forecast, they will cancel all their meetings. This sounded like a good plan to be automated. So far this only provides alerts using the temp.
+An alerting system to let you know if the weather is going to be "relatively great" in the next 7 days. Darksky API doesn't allow historic access, so history needs to be saved and compared against the coming week.
 
-An [xbar](https://github.com/matryer/xbar-plugins) plugin
+Why: This inspired by someone who, if there is a great day forecast, will cancel all their meetings on that day. So far this only provides alerts using the maxTemp for a day.
 
-Requires an ordered list of weather icons. [Asking here](https://github.com/nrkno/yr-weather-symbols/issues/21#issuecomment-740599546) but might need to just make a best get
+About: This is an [xbar](https://github.com/matryer/xbar-plugins) plugin
+
 
 ## Todo
-Migrate to a new API [Visual eg](https://www.visualcrossing.com/resources/documentation/weather-api/how-to-replace-the-dark-sky-api/)
+1. Migrate to a new API [Visual eg](https://www.visualcrossing.com/resources/documentation/weather-api/how-to-replace-the-dark-sky-api/) 
+1. Compare different types of weather instead of just temperature. [Asking here](https://github.com/nrkno/yr-weather-symbols/issues/21#issuecomment-740599546) but might need to just make a best get
+
 
 ## Requirements
 
-1. Darkspy API key... get yours at https://darksky.net/dev (API ends end of 2022 thanks apple)
+1. Darkspy API key...  [no longer available](https://darksky.net/dev)  thanks apple!
 1. The app will need to run for a few days to build up a base-line before it starts being useful
-1. packages
-```
-import requests
-import json
-from random import randint
-import datetime
-from datetime import datetime
-import sqlite3
-import os
-```
+1. All standard Python3 packages?

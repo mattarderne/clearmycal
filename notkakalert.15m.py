@@ -54,10 +54,9 @@ def create_db():
 				temperatureMax REAL
 			)
 			'''
-		# conn.execute('''ALTER TABLE wx_history ADD COLUMN date CHAR(255)''')
 		conn.execute(sql)
 			
-def load_db(entries):
+def update_db(entries):
 		"""loads data into the database, line by line
 			uses the hybrid primary key id
 			which ensures that only one forecast record per future date gets added per day
@@ -87,7 +86,7 @@ def load_db(entries):
 				pass
 		conn.commit()
 	
-def get_forecasts(limit=8):
+def query_forecasts(limit=8):
 		"""queries the database, to get the latest versions of the future forecasts"""
 		
 		sql = """WITH latest_forecasts AS (
@@ -115,7 +114,7 @@ def get_forecasts(limit=8):
 		rows = curr.execute(sql).fetchmany(int(limit))
 		return rows
 
-def get_history(limit=14):
+def query_history(limit=14):
 		"""queries the database, 
 		gets history of the most likely actual weather for the past 2 weeks
 		Does this by taking the forecast from the day closest to the time the data was loaded
@@ -149,9 +148,11 @@ def get_history(limit=14):
 
 class Forecast:
 	def __init__(self):
+		
 		# get yours at https://darksky.net/dev
 		self.api_key = os.environ['darksky']
 		self.geo_api_key = ''
+		
 		# get yours API key for encode location at https://opencagedata.com
 		self.manual_city = 'Eynsham'
 		self.manual_latlng = '51.781605,-1.376999'
@@ -167,8 +168,12 @@ class Forecast:
 
 	def get_wx(self):
 
-		if self.api_key == "":
+		if self.api_key == '':
+			print('Missing API key')
+			print('---')
+			print('Get an API Key | href=https://darksky.net/dev')
 			return False
+
 
 		location = self.manual_location_lookup() 
 
@@ -189,7 +194,6 @@ class Forecast:
 				return False
 		except requests.HTTPError:
 			return False
-
 
 		daily_data = {}
 
@@ -215,21 +219,30 @@ class Forecast:
 
 		return daily_data
 
+
+class Compare():
+	def __init__(self):
+		self.something = 'foo'
+
+	def past_compare_previous(self,past_week, coming_week):
+		"""houses the logic to determine if the week coming is 
+		much better than the determined previous period"""
+
+		if (coming_week[0][2] > past_week[0][2]):
+			return True;
+		if (coming_week[1][2] > past_week[0][2]):
+			return True;
+		else:
+			return False
+
+	def warn(self, wx):
+		"""The alert that gets printed on the xbar plugin if there is a good day coming""" 
+		print('Alert')
+		print('---')
+		print(wx)
+
+
 	def render_wx(self, wx):
-
-		if self.api_key == '':
-			print('Missing API key')
-			print('---')
-			print('Get an API Key | href=https://darksky.net/dev')
-			return False
-
-		daily_data = wx
-
-		if daily_data is False:
-			print('--')
-			print('---')
-			print('Could not get weather data at this time')
-			return False
 
 		print('---')
 		if daily_data[0]:
@@ -241,54 +254,33 @@ class Forecast:
 
 		else:
 			print('N/A')
-
-class Compare():
-	def __init__(self):
-		self.something = 'foo'
-
-	def past_compare_previous(self,past_week, coming_week):
-		"""houses the logic to determine if the week coming is 
-		much better than the determined previous period"""
-
-		# avg = mean(number_list)
-
-		print(past_week[0][2])
-		print(coming_week[0][2])
-		# if max(past_week[0][2]) > max(coming_week[0][2]):
-		# 	return True;
-		# else:
-		# 	return False
-
-	def warn(day):
-			print('Alert')
-			print('---')
-			print(day)
 		
 def main():
 	
 	### Get the latest forecast and load to db
 	forecast = Forecast()
 	wx = Forecast.get_wx(forecast)
-	# Forecast.render_wx(forecast, wx)
+
 	create_db()
-	load_db(wx)
+	update_db(wx)
 
 	### compare the latest forecast to the recent week
 
 	# pulls the "actual" data from the past n weeks
-	past_week = get_history()
+	past_weeks = query_history()
 
 	# pulls the forecast for the next week
-	coming_week = get_forecasts() 
+	coming_week = query_forecasts() 
 
 	compare = Compare()
-	if compare.past_compare_previous(past_week, coming_week):
+	if compare.past_compare_previous(past_weeks, coming_week):
 		compare.warn(day)
 
 	conn.close()
 	
 
-main()
+if __name__ == "__main__":
+	main()
 
 
 
