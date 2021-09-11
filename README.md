@@ -1,5 +1,5 @@
 # clearmycal
-An alerting system to let you know if the weather is going to be "relatively great" in the next 7 days
+An alerting system to let you know if the weather is going to be "relatively great" in the next 7 days. This inspired by someone who once said that if there is a great day forecast, they will cancel all their meetings. This sounded like a good plan to be automated. So far this only provides alerts using the temp.
 
 An [xbar](https://github.com/matryer/xbar-plugins) plugin
 
@@ -11,7 +11,8 @@ Migrate to a new API [Visual eg](https://www.visualcrossing.com/resources/docume
 ## Requirements
 
 1. Darkspy API key... get yours at https://darksky.net/dev (API ends end of 2022 thanks apple)
-2. packages
+1. The app will need to run for a few days to build up a base-line before it starts being useful
+1. packages
 ```
 import requests
 import json

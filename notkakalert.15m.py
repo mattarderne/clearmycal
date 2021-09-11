@@ -17,17 +17,14 @@ import datetime
 from datetime import datetime
 import sqlite3
 import os
-
+from statistics import mean
 
 
 conn = sqlite3.connect('/Users/mattarderne/Documents/notkak.db')
 curr = conn.cursor()
 
 
-class Utils:
-
-	@classmethod
-	def weather_scale(self): 
+def weather_scale(self): 
 		"""relative scale of the various weather descriptions"""
 		return {
 			    '1': 'clear-day',
@@ -42,34 +39,7 @@ class Utils:
 			    '8': 'snow'
 						}
 
-	@classmethod
-	def calculate_bearing(self, bearing, compass_rose, additional=False):
-		"""returns a windrose cardinal bearing, if additional Flag is set, it also returns the nearest two options"""
-		if compass_rose == 16:
-			dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
-		if compass_rose == 8: 	
-			dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
-		if compass_rose == 4: 	
-			dirs = ['^','<', 'v', '>']
-
-		ix = round(bearing / (360. / len(dirs)))
-		
-		if additional:
-			now = dirs[ix % len(dirs)],
-			neg	 = 	dirs[ix-1 % len(dirs)]
-			if ix >= compass_rose-1:
-				# if the index needs something at the other end of the list
-				pos	 = 	dirs[1 % len(dirs)]
-			else:
-				pos	 = 	dirs[ix+1 % len(dirs)]
-			return now, neg, pos
-		
-		else:
-			now = dirs[ix % len(dirs)]
-			return now
-
-	@classmethod
-	def create_db(self):
+def create_db(self):
 		"""creates the db table, only necessary once"""
 
 		sql = 	'''CREATE TABLE IF NOT EXISTS wx_history
@@ -86,9 +56,8 @@ class Utils:
 			'''
 		# conn.execute('''ALTER TABLE wx_history ADD COLUMN date CHAR(255)''')
 		conn.execute(sql)
-
-	@classmethod				
-	def load_db(self, entries):
+			
+def load_db(self, entries):
 		"""loads data into the database, line by line
 			uses the hybrid primary key id
 			which ensures that only one forecast record per future date gets added per day
@@ -117,9 +86,8 @@ class Utils:
 			except:
 				pass
 		conn.commit()
-
-	@classmethod	
-	def get_forecasts(self, limit=8):
+	
+def get_forecasts(self, limit=8):
 		"""queries the database, to get the latest versions of the future forecasts"""
 		
 		sql = """WITH latest_forecasts AS (
@@ -147,11 +115,34 @@ class Utils:
 		rows = curr.execute(sql).fetchmany(int(limit))
 		return rows
 
-	@classmethod	
-	def get_history(self, limit=14):
-		"""queries the database, to history of the most likely actual weather for the past 2 weeks"""
+def get_history(self, limit=14):
+		"""queries the database, 
+		gets history of the most likely actual weather for the past 2 weeks
+		Does this by taking the forecast from the day closest to the time the data was loaded
+		This assumes that the next day forecast was close to what was actually experienced
+		This could possibly be improved by pulling weather station data, but that might be inconsistent"""
 		
-		sql = """select 1	
+		sql = """WITH historic_actuals AS (
+					SELECT
+						DATE(timestamp,
+							'unixepoch',
+							'localtime') historic_date,
+							temperatureMax,
+							icon,
+						MAX(dbtimestamp)
+					FROM
+						wx_history
+					GROUP BY
+						1
+				)
+				SELECT
+					historic_date,
+					icon,
+					temperatureMax
+				FROM
+					historic_actuals
+				WHERE
+					historic_date <= date('now')
 				"""
 		rows = curr.execute(sql).fetchmany(int(limit))
 		return rows
@@ -255,17 +246,23 @@ class Compare():
 	def __init__(self):
 		self.something = 'foo'
 
-	def compare(self,wx, past_week):
-		if max(wx) > max(past_week):
-			return True;
-		else:
-			return False
+	def past_compare_previous(self,past_week, coming_week):
+		"""houses the logic to determine if the week coming is 
+		much better than the determined previous period"""
 
-	def warn():
-		if compare:
+		# avg = mean(number_list)
+
+		print(past_week[0][2])
+		print(coming_week[0][2])
+		# if max(past_week[0][2]) > max(coming_week[0][2]):
+		# 	return True;
+		# else:
+		# 	return False
+
+	def warn(day):
 			print('Alert')
-		else:
-			return False
+			print('---')
+			print(day)
 		
 def main():
 	
@@ -273,17 +270,21 @@ def main():
 	forecast = Forecast()
 	wx = Forecast.get_wx(forecast)
 	# Forecast.render_wx(forecast, wx)
-	Utils.create_db()
-	Utils.load_db(wx)
+	create_db()
+	load_db(wx)
 
 	### compare the latest forecast to the recent week
 
 	# pulls the "actual" data from the past n weeks
-	past_week = Utils.get_history()
+	past_week = get_history()
 
 	# pulls the forecast for the next week
-	coming_week = Utils.get_forecasts()
-	print(coming_week[0][2])
+	coming_week = get_forecasts()
+	print(type(coming_week[0])) 
+
+	compare = Compare()
+	if compare.past_compare_previous(past_week, coming_week):
+		compare.warn()
 
 	conn.close()
 	
