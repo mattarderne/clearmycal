@@ -22,16 +22,6 @@ from statistics import mean
 # threshold that the temp must break in order to get an alert
 PERCTEMP = 1.11
 
-# number of days to look ahead in the forecast for alerts
-#TODO
-
-# median/mean for the alert
-#TODO
-
-# icons or text
-#TODO
-
-
 VCKEY=os.environ['visualcrossing']
 
 
@@ -59,31 +49,31 @@ def get_historical():
 	and returns the average temp for that period
 	"""
 
-		try:
-			wx = (requests.get(f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=24&combinationMethod=aggregate&period=last30days&maxStations=-1&maxDistance=-1&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations=eynsham'))			
-			wx = wx.json()
+	try:
+		wx = (requests.get(f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=24&combinationMethod=aggregate&period=last30days&maxStations=-1&maxDistance=-1&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations=eynsham'))			
+		wx = wx.json()
 
-		except requests.HTTPError:
-			return False
+	except requests.HTTPError:
+		return False
+	
+	try: 
+
+		daily_data = {}
+
+		maxtemp = 0
+		counter = 0
+
+		for item in wx['location']['values']:
+
+			counter += 1
+			maxtemp += item['maxt']
 		
-		try: 
+		average_maxtemp = maxtemp/counter
 
-			daily_data = {}
+		return round(average_maxtemp,2)
 
-			maxtemp = 0
-			counter = 0
-
-			for item in wx['location']['values']:
-
-				counter += 1
-				maxtemp += item['maxt']
-			
-			average_maxtemp = maxtemp/counter
-
-			return round(average_maxtemp,2)
-
-		except requests.HTTPError:
-			return requests.HTTPError
+	except requests.HTTPError:
+		return requests.HTTPError
 
 def get_forecast(average_maxtemp, delta):
 	"""
@@ -92,33 +82,33 @@ def get_forecast(average_maxtemp, delta):
 	delta is a variable indicating by how much the average must be broken in order to trigger alerg
 	"""
 
-		try:
-			wx = (requests.get(f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/forecast?aggregateHours=24&combinationMethod=aggregate&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations=eynsham'))
-			wx = wx.json()
-		except requests.HTTPError:
+	try:
+		wx = (requests.get(f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/forecast?aggregateHours=24&combinationMethod=aggregate&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations=eynsham'))
+		wx = wx.json()
+	except requests.HTTPError:
+		return False
+
+	daily_data = {}
+
+	counter = 0
+
+	for item in wx['location']['values']:
+
+		if int(item['maxt']) >= int(average_maxtemp*delta):
+			
+
+			daily_data[counter] = {}
+			daily_data[counter]['temp'] = item['temp']
+			daily_data[counter]['conditions'] = item['conditions']
+			daily_data[counter]['date'] = datetime.fromtimestamp(item['datetime']/1000).strftime('%Y-%m-%d')
+
+			counter += 1
+
+		else:	
 			return False
 
-		daily_data = {}
-
-		counter = 0
-
-		for item in wx['location']['values']:
-
-			if int(item['maxt']) >= int(average_maxtemp*delta):
-				
-
-				daily_data[counter] = {}
-				daily_data[counter]['temp'] = item['temp']
-				daily_data[counter]['conditions'] = item['conditions']
-				daily_data[counter]['date'] = datetime.fromtimestamp(item['datetime']/1000).strftime('%Y-%m-%d')
-
-				counter += 1
-
-			else:	
-				return False
-
-		
-		return daily_data
+	
+	return daily_data
 
 		
 def main():

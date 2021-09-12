@@ -13,7 +13,10 @@ About:
 
 ## Todo
 1. Compare different types of weather instead of just temperature. [Asking here](https://github.com/nrkno/yr-weather-symbols/issues/21#issuecomment-740599546) but might need to just make a best get
-
+1. number of days to look ahead in the forecast for alerts
+1. median/mean for the alert
+1. icons or text
+1. error messages for credit limit and API key
 
 ## Requirements
 
