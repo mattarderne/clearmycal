@@ -18,8 +18,8 @@ About:
 ## Requirements
 
 1. VisualCrossing](https://www.visualcrossing.com/resources/documentation/weather-api/how-to-replace-the-dark-sky-api/) API key
-1. Requires [xbar](https://xbarapp.com/) to be installed, and `visualcrossing.12h.py` to be copied to the folder
+1. Requires [xbar](https://xbarapp.com/) to be installed, and `clearmycal.12h.py` to be copied to the folder
 
-Test with `python visualcrossing.12h.py`
+Test with `python clearmycal.12h.py`
 
 The `.12h.py` indicates to the xbar app how often to run the code. 
