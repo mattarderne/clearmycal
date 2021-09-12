@@ -66,7 +66,7 @@ def update_db(entries):
 
 		for key in entries.items():
 
-			meta_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+			# meta_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 			meta_date = datetime.now().strftime('%Y-%m-%d')
 			
 			id = meta_date+' '+str(key[1]['timestamp'])
