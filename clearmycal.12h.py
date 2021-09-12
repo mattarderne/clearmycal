@@ -98,7 +98,7 @@ def get_forecast(average_maxtemp, delta):
 			
 
 			daily_data[counter] = {}
-			daily_data[counter]['temp'] = item['temp']
+			daily_data[counter]['maxt'] = item['maxt']
 			daily_data[counter]['conditions'] = item['conditions']
 			daily_data[counter]['date'] = datetime.fromtimestamp(item['datetime']/1000).strftime('%Y-%m-%d')
 
@@ -121,7 +121,7 @@ def main():
 		print('---')
 		print('average: ' + str(average))
 		for i in forecast.items():
-			print(i[1]['date'] + ' temp: ' + str(i[1]['temp']) + str(i[1]['conditions']))
+			print(i[1]['date'] + ' temp: ' + str(i[1]['maxt']) + str(i[1]['conditions']))
 
 if __name__ == "__main__":
 	main()
