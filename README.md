@@ -3,7 +3,7 @@ An alerting system to let you know if the weather is going to be "relatively gre
 
 Why: This inspired by someone who, if there is a great day forecast, will cancel all their meetings on that day. 
 
-(Currently only provides alerts using the maxTemp for a day, doesn't consider wind/rain)
+Currently provides an alert when the upcoming maxTemp for a day exceeds the average over the previous 2 weeks by 25% _(NB: doesn't yet consider wind/rain!)_
 
 **About** 
 
@@ -13,7 +13,7 @@ Why: This inspired by someone who, if there is a great day forecast, will cancel
 
 ## Requirements
 
-1. VisualCrossing](https://www.visualcrossing.com/resources/documentation/weather-api/how-to-replace-the-dark-sky-api/) API key
+1. [VisualCrossing](https://www.visualcrossing.com/resources/documentation/weather-api/how-to-replace-the-dark-sky-api/) API key added to `~/.env` as `visualcrossing`
 1. Requires [xbar](https://xbarapp.com/) to be installed, and `clearmycal.12h.py` to be copied to the folder
 
 Test with `python clearmycal.12h.py`

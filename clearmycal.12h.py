@@ -20,7 +20,7 @@ from statistics import mean
 # CONFIG
 
 # threshold that the temp must break in order to get an alert
-PERCTEMP = 1.11
+PERCTEMP = 1.20
 
 VCKEY=os.environ['visualcrossing']
 
