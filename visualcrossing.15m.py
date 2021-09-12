@@ -92,7 +92,6 @@ def get_forecast(average_maxtemp, delta):
 	delta is a variable indicating by how much the average must be broken in order to trigger alerg
 	"""
 
-
 		try:
 			wx = (requests.get(f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/forecast?aggregateHours=24&combinationMethod=aggregate&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations=eynsham'))
 			wx = wx.json()

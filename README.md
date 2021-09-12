@@ -1,7 +1,9 @@
 # clearmycal
 An alerting system to let you know if the weather is going to be "relatively great" in the next 7 days. 
 
-Why: This inspired by someone who, if there is a great day forecast, will cancel all their meetings on that day. So far this only provides alerts using the maxTemp for a day.
+Why: This inspired by someone who, if there is a great day forecast, will cancel all their meetings on that day. 
+
+(Currently only provides alerts using the maxTemp for a day, doesn't consider wind/rain)
 
 About: 
 
