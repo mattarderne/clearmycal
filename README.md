@@ -26,3 +26,4 @@ The `.12h.py` indicates to the xbar app how often to run the code.
 1. median/mean for the alert
 1. icons or text
 1. error messages for credit limit and API key
+1. [email](https://sendgrid.com/pricing/) notifications and check [calendar](https://developers.google.com/calendar/api/quickstart/python)
