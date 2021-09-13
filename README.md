@@ -13,7 +13,7 @@ Currently provides an alert when the upcoming maxTemp for a day exceeds the aver
 
 ## Requirements
 
-1. [VisualCrossing](https://www.visualcrossing.com/resources/documentation/weather-api/how-to-replace-the-dark-sky-api/) API key added to `~/.env` as `visualcrossing`
+1. [VisualCrossing](https://www.visualcrossing.com/) API key added to `~/.env` as `visualcrossing` and the `LOCATION` variable to be added to the code. Test this on Visualcrossing
 1. Requires [xbar](https://xbarapp.com/) to be installed, and `clearmycal.12h.py` to be copied to the folder
 
 Test with `python clearmycal.12h.py`

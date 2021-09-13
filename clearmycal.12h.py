@@ -22,7 +22,9 @@ from statistics import mean
 # threshold that the temp must break in order to get an alert
 PERCTEMP = 1.20
 
+
 VCKEY = os.environ['visualcrossing']
+LOCATION = '<insert_location_here>'
 
 
 def weather_scale():
@@ -52,7 +54,7 @@ def get_historical():
 
     try:
         wx = (requests.get(
-            f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=24&combinationMethod=aggregate&period=last30days&maxStations=-1&maxDistance=-1&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations=eynsham'))
+            f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=24&combinationMethod=aggregate&period=last30days&maxStations=-1&maxDistance=-1&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={LOCATION}'))
         wx = wx.json()
 
     except requests.HTTPError:
@@ -69,6 +71,7 @@ def get_historical():
 
             counter += 1
             maxtemp += item['maxt']
+
 
         average_maxtemp = maxtemp / counter
 
@@ -87,7 +90,7 @@ def get_forecast(average_maxtemp, delta):
 
     try:
         wx = (requests.get(
-            f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/forecast?aggregateHours=24&combinationMethod=aggregate&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations=eynsham'))
+            f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/forecast?aggregateHours=24&combinationMethod=aggregate&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={LOCATION}'))
         wx = wx.json()
     except requests.HTTPError:
         return False
