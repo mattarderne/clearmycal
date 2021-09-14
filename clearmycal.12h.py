@@ -111,12 +111,7 @@ def get_forecast(average_maxtemp, delta):
         return False
 
 
-    df = pd.DataFrame.from_dict(wx['location']['values'])
-    df['datetimeStr'] = pd.to_datetime(df['datetimeStr'])
-
-
-
-    return df
+    return wx['location']['values']
 
     # daily_data = {}
 
@@ -149,10 +144,10 @@ def main():
     # hist_chart.show()
 
     average = True
-    forec = get_forecast(average, PERCTEMP)
+    forecast = get_forecast(average, PERCTEMP)
     # print(forec)
 
-    forec_chart = px.scatter(forec, x="datetimeStr", y="maxt",title='Coming week maxTemp', trendline="rolling", trendline_options=dict(window=2))
+    forec_chart = px.scatter(forecast, x="datetime", y="maxt",title='Coming week maxTemp', trendline="rolling", trendline_options=dict(window=2))
     
 
 
