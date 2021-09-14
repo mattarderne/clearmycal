@@ -17,14 +17,22 @@ from datetime import datetime
 import os
 from statistics import mean
 
+import plotly.express as px
+import pandas as pd
+import datapane as dp
+
+
 # CONFIG
 
 # threshold that the temp must break in order to get an alert
 PERCTEMP = 1.20
 
+# number of days to look backwards for the alert 7 or 30
+HISTORICAL_DAYS = 30
+
 
 VCKEY = os.environ['visualcrossing']
-LOCATION = '<insert_location_here>'
+LOCATION = 'eynsham'
 
 
 def weather_scale():
@@ -54,7 +62,7 @@ def get_historical():
 
     try:
         wx = (requests.get(
-            f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=24&combinationMethod=aggregate&period=last30days&maxStations=-1&maxDistance=-1&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={LOCATION}'))
+            f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=24&combinationMethod=aggregate&period=last{HISTORICAL_DAYS}days&maxStations=-1&maxDistance=-1&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={LOCATION}'))
         wx = wx.json()
 
     except requests.HTTPError:
@@ -62,20 +70,27 @@ def get_historical():
 
     try:
 
-        daily_data = {}
-
-        maxtemp = 0
-        counter = 0
-
-        for item in wx['location']['values']:
-
-            counter += 1
-            maxtemp += item['maxt']
+        df = pd.DataFrame.from_dict(wx['location']['values'])
+        df['datetimeStr'] = pd.to_datetime(df['datetimeStr'])
 
 
-        average_maxtemp = maxtemp / counter
 
-        return round(average_maxtemp, 2)
+        return df
+
+        # daily_data = {}
+
+        # maxtemp = 0
+        # counter = 0
+
+        # for item in wx['location']['values']:
+
+        #     counter += 1
+        #     maxtemp += item['maxt']
+
+
+        # average_maxtemp = maxtemp / counter
+
+        # return round(average_maxtemp, 2)
 
     except requests.HTTPError:
         return requests.HTTPError
@@ -95,42 +110,74 @@ def get_forecast(average_maxtemp, delta):
     except requests.HTTPError:
         return False
 
-    daily_data = {}
 
-    counter = 0
+    df = pd.DataFrame.from_dict(wx['location']['values'])
+    df['datetimeStr'] = pd.to_datetime(df['datetimeStr'])
 
-    for item in wx['location']['values']:
 
-        if int(item['maxt']) >= int(average_maxtemp * delta):
 
-            daily_data[counter] = {}
-            daily_data[counter]['maxt'] = item['maxt']
-            daily_data[counter]['conditions'] = item['conditions']
-            daily_data[counter]['date'] = datetime.fromtimestamp(
-                item['datetime'] / 1000).strftime('%Y-%m-%d')
+    return df
 
-            counter += 1
+    # daily_data = {}
 
-        else:
-            return False
+    # counter = 0
 
-    return daily_data
+    # for item in wx['location']['values']:
+
+    #     if int(item['maxt']) >= int(average_maxtemp * delta):
+
+    #         daily_data[counter] = {}
+    #         daily_data[counter]['maxt'] = item['maxt']
+    #         daily_data[counter]['conditions'] = item['conditions']
+    #         daily_data[counter]['date'] = datetime.fromtimestamp(
+    #             item['datetime'] / 1000).strftime('%Y-%m-%d')
+
+    #         counter += 1
+
+    #     else:
+    #         return False
+
+    # return daily_data
 
 
 def main():
 
-    average = get_historical()
-    forecast = get_forecast(average, PERCTEMP)
+    hist = get_historical()
+    # print(hist)
 
-    if forecast:
-        print('WX!')
-        print('---')
-        print('average: ' + str(average))
-        for i in forecast.items():
-            print(i[1]['date'] +
-                  ' temp: ' +
-                  str(i[1]['maxt']) +
-                  str(i[1]['conditions']))
+    hist_chart = px.scatter(hist, x="datetimeStr", y="maxt",title='Last week maxTemp', trendline="rolling", trendline_options=dict(window=15))
+    # hist_chart.show()
+
+    average = True
+    forec = get_forecast(average, PERCTEMP)
+    # print(forec)
+
+    forec_chart = px.scatter(forec, x="datetimeStr", y="maxt",title='Coming week maxTemp', trendline="rolling", trendline_options=dict(window=2))
+    
+
+
+    dp.Report(
+    dp.Group(
+        dp.Plot(hist_chart), 
+        # dp.DataTable(hist),
+        dp.Plot(forec_chart), 
+        # dp.DataTable(forec),
+        columns=2
+        )
+    ).upload(name='Clearmycal', open=True)
+    
+    # forecast = get_forecast(average, PERCTEMP)
+
+    # if forecast:
+    #     print('WX!')
+    #     print('---')
+    #     print('average: ' + str(average))
+    #     for i in forecast.items():
+    #         print(i[1]['date'] +
+    #               ' temp: ' +
+    #               str(i[1]['maxt']) +
+    #               str(i[1]['conditions']))
+
 
 
 if __name__ == "__main__":
