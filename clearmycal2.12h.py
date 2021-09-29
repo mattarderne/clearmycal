@@ -23,7 +23,7 @@ from statistics import mean
 PERCTEMP = 0.7
 
 # number of days to look ahead in the forecast for alerts
-LOOKAHEAD = 7
+LOOKAHEAD = 14
 
 # filter out days if there is any rain forecast
 RAINY = False
@@ -97,18 +97,21 @@ def weather_scale(wx_type):
 	      'type_30':	{'type': 30, 'description':'Smoke Or Haze',  'rating': 4},
 	}
 
-    return next(val for key, val in wx.items() if i.strip() in key)
+    return next(val for key, val in wx.items() if wx_type.strip() in key)
 
-
-def get_historical():
+def get_wx(type):
     """
     gets the historical data for the previous few weeks
     and returns the average temp for that period
     """
+    if type == 'forecast':
+        url = f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/forecast?aggregateHours=24&combinationMethod=aggregate&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={manual_latlng}&lang=id'
+        
+    if type == 'historical':
+        url = f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=24&combinationMethod=aggregate&period=last30days&maxStations=-1&maxDistance=-1&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={manual_latlng}&lang=id'
 
     try:
-        wx = (requests.get(
-            f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=24&combinationMethod=aggregate&period=last30days&maxStations=-1&maxDistance=-1&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={manual_latlng}&lang=id'))
+        wx = (requests.get(url))
         wx = wx.json()
 
     except requests.HTTPError:
@@ -119,54 +122,36 @@ def get_historical():
         daily_data = {}
 
         maxtemp = 0
-        wxrating = 0
         counter = 0
 
         for item in wx['location']['values']:
 
+            daily_data[counter] = {}
+            daily_data[counter]['temp'] = item['temp']
+            daily_data[counter]['maxt'] = item['maxt']
+            daily_data[counter]['conditions'] = item['conditions']
+            # daily_data[counter]['rating'] = weather_scale(item['conditions'])
+            daily_data[counter]['date'] = datetime.fromtimestamp(
+                item['datetime'] / 1000).strftime('%a %-d %b')
+
             counter += 1
             maxtemp += item['maxt']
-            for i in weather_scale(item['conditions']):
-                wxrating += int(i)
 
-        average_maxtemp = maxtemp / counter
-        average_rating = wxrating / counter
+        average_maxtemp = round((maxtemp / counter),2)
 
-        return round(average_maxtemp, 2), round(average_rating, 2)
+        return daily_data, average_maxtemp
 
     except requests.HTTPError:
         return requests.HTTPError
 
 
-def get_forecast():
-    """
-    gets the weather forecast (WX) for the comping period, returns a dictionary with an index
-    """
+def historical_conditions(daily_data):
+    wx = []
+    for day in daily_data.items():
+        rating = weather_scale(day[1]['conditions'])    
+        wx.append(rating)
+    return wx
 
-    try:
-        wx = (requests.get(
-            f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/forecast?aggregateHours=24&combinationMethod=aggregate&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={manual_latlng}&lang=id'))
-        wx = wx.json()
-    except requests.HTTPError:
-        return False
-
-    daily_data = {}
-
-    counter = 0
-
-    for item in wx['location']['values']:
-
-        daily_data[counter] = {}
-        daily_data[counter]['temp'] = item['temp']
-        daily_data[counter]['maxt'] = item['maxt']
-        daily_data[counter]['conditions'] = item['conditions']
-        daily_data[counter]['rating'] = weather_scale(item['conditions'])
-        daily_data[counter]['date'] = datetime.fromtimestamp(
-            item['datetime'] / 1000).strftime('%a %-d %b')
-
-        counter += 1
-
-    return daily_data
 
 def compare_temp(average, forecast):
     """compares the average for the past period
@@ -188,13 +173,13 @@ def compare_temp(average, forecast):
                                ' temp: ' +
                                str(i[1]['temp']) +
                                ' ' +
-                               str(i[1]['rating']))
+                               str(i[1]['conditions']))
                 else:
                     results.append(i[1]['date'] +
                                ' temp: ' +
                                str(i[1]['temp']) +
                                ' ' +
-                               str(i[1]['rating']))
+                               str(i[1]['conditions']))
 
     if results:
         return results
@@ -203,21 +188,23 @@ def compare_temp(average, forecast):
 
 def main():
 
-    # average, number = get_historical()
-    # forecast = get_forecast()
+    hist_daily, hist_average_maxtemp = get_wx('historical')
+    forecast_daily, forecast_average_maxtemp = get_wx('forecast')
 
-    # alert = compare_temp(average, forecast)
-    # if alert:
-    #     print('WX!')
-    #     print('---')
-    #     print('WX for ' + manual_city)
-    #     print('historical average: ' + str(average))
-    #     print('---')
-    #     print('Forecast')
-    #     for i in alert:
-    #         print(i)
+    alert = compare_temp(hist_average_maxtemp, forecast_daily)
+    if alert:
+        print('WX!')
+        print('---')
+        print('WX for ' + manual_city)
+        print('historical average: ' + str(hist_average_maxtemp))
+        print('---')
+        print('Forecast')
+        for i in alert:
+            print(i)
     
-    print(weather_scale('type_2, type_3, type_31'))
+    # print(weather_scale('type_2')['description'])
+
+    # print(historical_conditions(hist_daily))
 
 if __name__ == "__main__":
     main()
