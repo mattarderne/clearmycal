@@ -44,9 +44,8 @@ manual_city = 'Boscastle'
 manual_latlng = '50.684021,-4.692920'
 
 
-def weather_scale(wx_type_list):
+def weather_scale(wx_type):
     """
-    wx_type to be assessed ,returns details on them
     returns an integer from 1-5 for a relative scale of the various weather descriptions
     more documents here
     https://www.visualcrossing.com/resources/documentation/weather-api/weather-condition-fields/"""
@@ -98,11 +97,7 @@ def weather_scale(wx_type_list):
 	      'type_30':	{'type': 30, 'description':'Smoke Or Haze',  'rating': 4},
 	}
 
-    results = []
-    for i in wx_type_list.split(','):
-        rating = next(val for key, val in wx.items() if i.strip() in key)
-        results.append(rating['rating'])
-    return results
+    return next(val for key, val in wx.items() if i.strip() in key)
 
 
 def get_historical():
@@ -208,21 +203,21 @@ def compare_temp(average, forecast):
 
 def main():
 
-    average, number = get_historical()
-    forecast = get_forecast()
+    # average, number = get_historical()
+    # forecast = get_forecast()
 
-    alert = compare_temp(average, forecast)
-    if alert:
-        print('WX!')
-        print('---')
-        print('WX for ' + manual_city)
-        print('historical average: ' + str(average))
-        print('---')
-        print('Forecast')
-        for i in alert:
-            print(i)
+    # alert = compare_temp(average, forecast)
+    # if alert:
+    #     print('WX!')
+    #     print('---')
+    #     print('WX for ' + manual_city)
+    #     print('historical average: ' + str(average))
+    #     print('---')
+    #     print('Forecast')
+    #     for i in alert:
+    #         print(i)
     
-    # print(weather_scale('type_2, type_3, type_31'))
+    print(weather_scale('type_2, type_3, type_31'))
 
 if __name__ == "__main__":
     main()
