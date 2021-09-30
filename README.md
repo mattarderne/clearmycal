@@ -21,9 +21,14 @@ Test with `python clearmycal.12h.py`
 The `.12h.py` indicates to the xbar app how often to run the code. 
 
 ## Todo
-1. Compare different types of weather instead of just temperature. [Asking here](https://github.com/nrkno/yr-weather-symbols/issues/21#issuecomment-740599546) but might need to just make a best get
-1. number of days to look ahead in the forecast for alerts
+
 1. median/mean for the alert
 1. icons or text
-1. error messages for credit limit and API key
 1. [email](https://sendgrid.com/pricing/) notifications and check [calendar](https://developers.google.com/calendar/api/quickstart/python)
+
+## WIP
+[ ] Compare different types of weather instead of just temperature. [Asking here](https://github.com/nrkno/yr-weather-symbols/issues/21#issuecomment-740599546) but might need to just make a best get
+
+## Done
+[x] number of days to look ahead in the forecast for alerts
+[x] error messages for credit limit and API key
