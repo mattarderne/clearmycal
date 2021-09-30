@@ -51,18 +51,20 @@ def weather_scale(wx_type):
     https://www.visualcrossing.com/resources/documentation/weather-api/weather-condition-fields/"""
     
     wx={ 
-        'type_2': {'type': 2, 'description': 'Drizzle', 'rating': 1},
+        'type_43': {'type': 43, 'description':'Clear', 'rating': 0},
+        'type_27': {'type': 27, 'description':'Sky Coverage Decreasing', 'rating': 0},
+        'type_28': {'type': 28, 'description':'Sky Coverage Increasing', 'rating': 0},
+        'type_29': {'type': 29, 'description':'Sky Unchanged', 'rating': 0},
+        
+        'type_42': {'type': 42, 'description':'Partially cloudy', 'rating': 1},
+
         'type_2': {'type': 2, 'description': 'Drizzle', 'rating': 1},
         'type_3': {'type': 3, 'description': 'Heavy Drizzle', 'rating': 1},
         'type_4': {'type': 4, 'description': 'Light Drizzle', 'rating': 1},
         'type_6': {'type': 6, 'description': 'Light Drizzle/Rain', 'rating': 1},
         'type_26': {'type': 26, 'description':'Light Rain', 'rating': 1},
-        'type_27': {'type': 27, 'description':'Sky Coverage Decreasing', 'rating': 1},
-        'type_28': {'type': 28, 'description':'Sky Coverage Increasing', 'rating': 1},
-        'type_29': {'type': 29, 'description':'Sky Unchanged', 'rating': 1},
         'type_41': {'type': 41, 'description':'Overcast', 'rating': 1},
-        'type_42': {'type': 42, 'description':'Partially cloudy', 'rating': 1},
-        'type_43': {'type': 43, 'description':'Clear', 'rating': 1},
+        
 	      'type_1': {'type': 1, 'description':'Blowing Or Drifting Snow','rating': 2},
 	      'type_5':	{'type': 5, 'description':'Heavy Drizzle/Rain', 'rating': 2},
 	      'type_8':	{'type': 8, 'description':'Fog', 'rating': 2},
@@ -97,7 +99,11 @@ def weather_scale(wx_type):
 	      'type_30':	{'type': 30, 'description':'Smoke Or Haze',  'rating': 4},
 	}
 
-    return next(val for key, val in wx.items() if wx_type.strip() in key)
+    results = []
+    for i in wx_type.split(','):
+        rating = next(val for key, val in wx.items() if i.strip() == key)
+        results.append(rating['rating'])
+    return results
 
 def get_wx(type):
     """
@@ -113,9 +119,12 @@ def get_wx(type):
     try:
         wx = (requests.get(url))
         wx = wx.json()
+        if wx['errorCode']:
+            print(wx)
+            return False, False
 
     except requests.HTTPError:
-        return False
+        return False, False
 
     try:
 
@@ -146,12 +155,18 @@ def get_wx(type):
 
 
 def historical_conditions(daily_data):
+    """takes in a dict of the past data and 
+    pulls out the conditions and returns 
+    an ordered list from most old to new the daily rating from 0-5 (0 best)
+    will accept a list and only return the max(ie worst, as forecast include 2"""
     wx = []
-    for day in daily_data.items():
-        rating = weather_scale(day[1]['conditions'])    
-        wx.append(rating)
-    return wx
 
+    for day in daily_data.items():
+        #converts the "type" rating into a dict of the conditions
+        rating = weather_scale(day[1]['conditions'])
+        #appends the number value for the rating from 1-5    
+        wx.append(max(rating))
+    return wx
 
 def compare_temp(average, forecast):
     """compares the average for the past period
@@ -188,23 +203,30 @@ def compare_temp(average, forecast):
 
 def main():
 
-    hist_daily, hist_average_maxtemp = get_wx('historical')
-    forecast_daily, forecast_average_maxtemp = get_wx('forecast')
+    # hist_daily, hist_average_maxtemp = get_wx('historical')
+    # forecast_daily, forecast_average_maxtemp = get_wx('forecast')
 
-    alert = compare_temp(hist_average_maxtemp, forecast_daily)
-    if alert:
-        print('WX!')
-        print('---')
-        print('WX for ' + manual_city)
-        print('historical average: ' + str(hist_average_maxtemp))
-        print('---')
-        print('Forecast')
-        for i in alert:
-            print(i)
+    # alert = compare_temp(hist_average_maxtemp, forecast_daily)
+    # if alert:
+    #     print('WX!')
+    #     print('---')
+    #     print('WX for ' + manual_city)
+    #     print('Historical average: ' + str(hist_average_maxtemp))
+    #     print('Forecast average: ' + str(forecast_average_maxtemp))
+    #     print('---')
+    #     print('Forecast')
+    #     for i in alert:
+    #         print(i)
     
-    # print(weather_scale('type_2')['description'])
-
+    # print(weather_scale('type_2, type_30'))
+    # print(hist_daily[1]['conditions'])
     # print(historical_conditions(hist_daily))
+    # print(historical_conditions(forecast_daily))
+
+    if weather_scale('type_2, type_3,type_4,type_30') == [1, 1, 1, 4] and weather_scale('type_21') == [3]:
+        pass
+    else:
+        print('weather_scale error')
 
 if __name__ == "__main__":
     main()
