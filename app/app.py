@@ -6,7 +6,11 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return render_template("index.html", temp=42)
+    try: 
+        temp = main('London')
+        return render_template("index.html", temp)
+    except:
+        return render_template("index.html", temp='no data')
 
 
 @app.route("/api/<location>")

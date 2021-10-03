@@ -1,5 +1,7 @@
 # clearmycal
 
+Running at https://clearmycal.herokuapp.com/api/wx/london
+
 ## Run locally
 
 ```
