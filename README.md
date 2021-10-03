@@ -14,7 +14,7 @@ FLASK_DEBUG=1 FLASK_APP=app/app.py flask run
 Then go to http://127.0.0.1:5000/
 
 Test the API route http://127.0.0.1:8000/api/wx/london
-can also do latlong Ie 127.0.0.1:5000/api/wx/50.684021,-4.692920
+can also do latlong eg http://127.0.0.1:5000/api/wx/50.684021,-4.692920
 
 ## About
 
@@ -46,8 +46,8 @@ The `.12h.py` indicates to the xbar app how often to run the code.
 1. [email](https://sendgrid.com/pricing/) notifications and check [calendar](https://developers.google.com/calendar/api/quickstart/python)
 
 ## WIP
-[ ] Compare different types of weather instead of just temperature. [Asking here](https://github.com/nrkno/yr-weather-symbols/issues/21#issuecomment-740599546) but might need to just make a best get
+* [ ] Compare different types of weather instead of just temperature. [Asking here](https://github.com/nrkno/yr-weather-symbols/issues/21#issuecomment-740599546) but might need to just make a best get
 
 ## Done
-[x] number of days to look ahead in the forecast for alerts
-[x] error messages for credit limit and API key
+* [x] number of days to look ahead in the forecast for alerts
+* [x] error messages for credit limit and API key
