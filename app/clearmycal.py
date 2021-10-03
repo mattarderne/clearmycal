@@ -1,15 +1,3 @@
-#!/usr/bin/env PYTHONIOENCODING=UTF-8 /usr/local/bin/python
-# -*- coding: utf-8 -*-
-
-# <bitbar.title>ClearMyCal</bitbar.title>
-# <bitbar.version>v0.0.1</bitbar.version>
-# <bitbar.author>Matt Arderne</bitbar.author>
-# <bitbar.author.github>seripap</bitbar.author.github>
-# <bitbar.desc>ClearMyCal xbar plugin.</bitbar.desc>
-# <bitbar.image></bitbar.image>
-# <bitbar.dependencies>python</bitbar.dependencies>
-
-
 import requests
 import json
 from random import randint
@@ -23,7 +11,9 @@ from statistics import mean
 PERCTEMP = 1.20
 
 
-VCKEY = os.environ['visualcrossing']
+# VCKEY = os.environ['visualcrossing']
+VCKEY = 'ad4185e99528a4f11c391a9977ff3b38'
+
 LOCATION = '<insert_location_here>'
 
 
@@ -121,6 +111,9 @@ def main():
 
     average = get_historical()
     forecast = get_forecast(average, PERCTEMP)
+
+    print('Average: '+average)
+    print('Forecast: '+forecast)
 
     if forecast:
         print('WX!')

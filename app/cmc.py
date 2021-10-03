@@ -19,14 +19,15 @@ from statistics import mean
 
 # CONFIG
 
-# threshold that the temp must break in order to get an alert
-PERCTEMP = 0.7
+# threshold that the temp must break in order to get an alert, higher threshold for rainy day
+RAINY_PERCTEMP = 1.1
+CLEAR_PERCTEMP = 0.75
 
 # number of days to look ahead in the forecast for alerts
-LOOKAHEAD = 14
+LOOKAHEAD = 8
 
 # filter out days if there is any rain forecast
-RAINY = False
+RAINY = True
 
 # number of days to look back for the average alerts, True = maximum
 # TODOLOOKBACK = True
@@ -41,7 +42,7 @@ RAINY = False
 VCKEY = 'L69PGR8DVXWM7RZV3DQC4AVRW'
 
 manual_city = 'Boscastle'
-manual_latlng = '50.684021,-4.692920'
+# manual_latlng = '50.684021,-4.692920'
 
 
 def weather_scale(wx_type):
@@ -56,7 +57,7 @@ def weather_scale(wx_type):
         'type_28': {'type': 28, 'description':'Sky Coverage Increasing', 'rating': 0},
         'type_29': {'type': 29, 'description':'Sky Unchanged', 'rating': 0},
         
-        'type_42': {'type': 42, 'description':'Partially cloudy', 'rating': 1},
+        'type_42': {'type': 42, 'description':'Partially cloudy', 'rating': 0},
 
         'type_2': {'type': 2, 'description': 'Drizzle', 'rating': 1},
         'type_3': {'type': 3, 'description': 'Heavy Drizzle', 'rating': 1},
@@ -99,29 +100,32 @@ def weather_scale(wx_type):
 	      'type_30':	{'type': 30, 'description':'Smoke Or Haze',  'rating': 4},
 	}
 
-    results = []
+    number = []
+    description = []
     for i in wx_type.split(','):
         rating = next(val for key, val in wx.items() if i.strip() == key)
-        results.append(rating['rating'])
-    return results
+        number.append(rating['rating'])
+        description.append(rating['description'])
+    return number, description
 
-def get_wx(type):
+def get_wx(latlong, type):
     """
     gets the historical data for the previous few weeks
     and returns the average temp for that period
     """
     if type == 'forecast':
-        url = f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/forecast?aggregateHours=24&combinationMethod=aggregate&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={manual_latlng}&lang=id'
+        url = f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/forecast?aggregateHours=24&combinationMethod=aggregate&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={latlong}&lang=id'
         
     if type == 'historical':
-        url = f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=24&combinationMethod=aggregate&period=last30days&maxStations=-1&maxDistance=-1&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={manual_latlng}&lang=id'
+        url = f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=24&combinationMethod=aggregate&period=last30days&maxStations=-1&maxDistance=-1&contentType=json&unitGroup=metric&locationMode=single&key={VCKEY}&dataElements=default&locations={latlong}&lang=id'
 
     try:
         wx = (requests.get(url))
         wx = wx.json()
-        if wx['errorCode']:
-            print(wx)
-            return False, False
+        print(wx)
+        # if wx['errorCode']:
+        #     print(wx)
+        #     return False, False
 
     except requests.HTTPError:
         return False, False
@@ -139,7 +143,7 @@ def get_wx(type):
             daily_data[counter]['temp'] = item['temp']
             daily_data[counter]['maxt'] = item['maxt']
             daily_data[counter]['conditions'] = item['conditions']
-            # daily_data[counter]['rating'] = weather_scale(item['conditions'])
+            daily_data[counter]['rating'],daily_data[counter]['description'] = weather_scale(item['conditions'])
             daily_data[counter]['date'] = datetime.fromtimestamp(
                 item['datetime'] / 1000).strftime('%a %-d %b')
 
@@ -176,57 +180,59 @@ def compare_temp(average, forecast):
     will only return results if there isn't a rainy day forecast depending on the RAINY setting
      """
 
-    limit = int(average * PERCTEMP)
-
     results = []
 
     for i in forecast.items():
+        
+        #checks if too far in the future
         if int(i[0]) < int(LOOKAHEAD):
-            if int(i[1]['maxt']) > limit:
-                if RAINY and 'rain' not in str(i[1]['conditions']).lower():
-                    results.append(i[1]['date'] +
-                               ' temp: ' +
-                               str(i[1]['temp']) +
-                               ' ' +
-                               str(i[1]['conditions']))
-                else:
-                    results.append(i[1]['date'] +
-                               ' temp: ' +
-                               str(i[1]['temp']) +
-                               ' ' +
-                               str(i[1]['conditions']))
+ 
+            #checks for a clear day with rating = 0, and temp above clear day threshold
+            if int(i[1]['rating'][0]) == 0 and int(i[1]['maxt']) > int(average * CLEAR_PERCTEMP):
+                results.append(i[1]['date'] +
+                           ' temp: ' +
+                           str(i[1]['maxt']) +
+                           ' ' +
+                           str(i[1]['description']))
+                
+
+            #otherwise checks the day is above the rainy day threshold
+            elif int(i[1]['maxt']) > int(average * RAINY_PERCTEMP):
+            
+                results.append(i[1]['date'] +
+                           ' temp: ' +
+                           str(i[1]['maxt']) +
+                           ' ' +
+                           str(i[1]['description']))
+                
+
+
 
     if results:
         return results
     else:
         return False
 
-def main():
+def main(location):
 
-    # hist_daily, hist_average_maxtemp = get_wx('historical')
-    # forecast_daily, forecast_average_maxtemp = get_wx('forecast')
+    hist_daily, hist_average_maxtemp = get_wx(location, 'historical')
+    forecast_daily, forecast_average_maxtemp = get_wx(location, 'forecast')
 
-    # alert = compare_temp(hist_average_maxtemp, forecast_daily)
-    # if alert:
-    #     print('WX!')
-    #     print('---')
-    #     print('WX for ' + manual_city)
-    #     print('Historical average: ' + str(hist_average_maxtemp))
-    #     print('Forecast average: ' + str(forecast_average_maxtemp))
-    #     print('---')
-    #     print('Forecast')
-    #     for i in alert:
-    #         print(i)
+    alert = compare_temp(hist_average_maxtemp, forecast_daily)
     
+    return alert
+    
+
+    
+    # if weather_scale('type_2, type_3,type_4,type_30') == [1, 1, 1, 4] and weather_scale('type_21') == [3]:
+    #     pass
+    # else:
+    #     print('weather_scale error')
+
     # print(weather_scale('type_2, type_30'))
     # print(hist_daily[1]['conditions'])
     # print(historical_conditions(hist_daily))
     # print(historical_conditions(forecast_daily))
-
-    if weather_scale('type_2, type_3,type_4,type_30') == [1, 1, 1, 4] and weather_scale('type_21') == [3]:
-        pass
-    else:
-        print('weather_scale error')
 
 if __name__ == "__main__":
     main()

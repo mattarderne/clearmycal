@@ -1,4 +1,23 @@
 # clearmycal
+
+## Run locally
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+```
+FLASK_DEBUG=1 FLASK_APP=app/app.py flask run
+```
+
+Then go to http://127.0.0.1:5000/
+
+Test the API route http://127.0.0.1:8000/api/wx/london
+can also do latlong Ie 127.0.0.1:5000/api/wx/50.684021,-4.692920
+
+## About
+
 An alerting system to let you know if the weather is going to be "relatively great" in the next 7 days. 
 
 Why: This inspired by someone who, if there is a great day forecast, will cancel all their meetings on that day. 
