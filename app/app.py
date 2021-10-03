@@ -18,4 +18,4 @@ def api(location):
 def cal(location):
     alert = main(location)
 
-    return jsonify(f"alerts {alert} for location {location}")
+    return jsonify(f"ALERT:  {alert[0]}  for location {location}")
