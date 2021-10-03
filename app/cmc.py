@@ -1,21 +1,5 @@
-#!/usr/bin/env PYTHONIOENCODING=UTF-8 /usr/local/bin/python
-# -*- coding: utf-8 -*-
-
-# <bitbar.title>ClearMyCal</bitbar.title>
-# <bitbar.version>v0.0.1</bitbar.version>
-# <bitbar.author>Matt Arderne</bitbar.author>
-# <bitbar.author.github>seripap</bitbar.author.github>
-# <bitbar.desc>ClearMyCal xbar plugin.</bitbar.desc>
-# <bitbar.image></bitbar.image>
-# <bitbar.dependencies>python</bitbar.dependencies>
-
-
 import requests
-import json
-from random import randint
 from datetime import datetime
-import os
-from statistics import mean
 
 # CONFIG
 
@@ -235,4 +219,4 @@ def main(location):
     # print(historical_conditions(forecast_daily))
 
 if __name__ == "__main__":
-    main()
+    main('london')
