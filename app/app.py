@@ -7,10 +7,11 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     try: 
-        temp = main('London')
-        return render_template("index.html", temp)
+        location = 'Oxford'
+        temp = main(location)
+        return render_template("index.html", temp=temp, location=location)
     except:
-        return render_template("index.html", temp='no data')
+        return render_template("index.html", temp='no data',location=location)
 
 
 @app.route("/api/<location>")

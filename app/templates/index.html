@@ -7,14 +7,14 @@
     </head>
     <body>
         <h2>Clearmycal, a minimal weather app</h2>
-        <h3>Alerts for London:</h3>
+        <h3>Alerts for {{ location }}:</h3>
         <h3>{{ temp }}</h3>
         <script src="static/main.js"></script>
 
         
         <br>
         <h3>API</h3>
-        <a href="/api/wx/london">API for London</a>
+        <a href="/api/wx/{{ location }}">API for {{ location }}</a>
         <br>
         <a href="/api/wx/api/wx/50.684021,-4.692920">API with lat,long coordinates</a>
         <br>
